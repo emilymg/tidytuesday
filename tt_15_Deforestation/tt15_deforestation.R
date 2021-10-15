@@ -26,10 +26,11 @@ veg_oil$entity <- as.factor(veg_oil$entity)
 # Filter veg_oil for all countries producing palm oil
 palm <- veg_oil %>%
   group_by(entity) %>%
-  filter(crop_oil == "Palm" & production != "NA") %>%
+  filter(crop_oil == "Palm" & production > 0) %>%
   as.data.frame()
 
-glimpse(palm) 
+glimpse(palm)
+summary(palm)
   
 # Filter by countries only, extract top 5
 palm_top5 <- palm %>% 
@@ -46,10 +47,14 @@ palm_top5
 # Join palm_top5 w/palm to extract yearly data for top 5 producers
 palm_top5_yearly_prod <- right_join(palm, palm_top5, by = "entity")
 # Create stream plot of production by year
-p_palm <- ggplot(palm_top5_full, aes(x = year, y = production, fill = entity)) +
+p_palm <- ggplot(palm_top5_yearly_prod, aes(x = year, y = production, fill = entity)) +
   geom_stream(type = "ridge") +
   scale_x_continuous(breaks = scales::breaks_extended(10)) +
-  scale_y_continuous(labels = scales::comma)
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "Top 5 Palm Oil Producers, 1961-2014",
+       caption = "Data Source: Our World in Data, https://ourworldindata.org/forests-and-deforestation",
+       x = NULL,
+       y = "total production, metric tons")
 # Add theme
 p_palm + theme(panel.background = element_rect(fill = "grey26"),
                panel.grid = element_blank(),
@@ -58,17 +63,19 @@ p_palm + theme(panel.background = element_rect(fill = "grey26"),
 # Part 2: Causes of deforestation in Brazil
 
 # Make a long df
-brazil_long <- pivot_longer(brazil_loss, cols = 4:14, names_to = "cause", values_to = "value")
+brazil_long <- pivot_longer(brazil_loss, cols = 4:14, names_to = "cause", values_to = "loss_hectares")
 glimpse(brazil_long)
+
 # Remove hyphens in cause column, change data type to factor
 brazil_long$cause <- str_replace_all(brazil_long$cause, "_", " ")
 brazil_long$cause <- as.factor(brazil_long$cause)
-# Rename value column to loss_hectares
-names(brazil_long)[5] <- 'loss_hectares'
+# View levels, cause
+levels(brazil_long$cause)
+
 # Set color palette
 pal <- colorRamps::matlab.like(11)
 
-# Plot stream
+# Stream plot of deforestation causes in Brazil by loss in hectares per year
 p_brazil <- ggplot(brazil_long, aes(x = year, y = loss_hectares, fill = cause)) +
   geom_stream(extra_span = 0.01, type = "proportional") +
   scale_x_continuous(breaks = c(2002, 2004, 2006, 2008, 2010, 2012)) +
@@ -79,7 +86,7 @@ p_brazil +
         panel.grid = element_blank(),
         legend.title = element_blank()) +
   labs(title = "Causes of Deforestation in Brazil, 2001-2013",
-       caption = "Data Source: TidyTuesday 2021 week 15, Our World in Data, https://ourworldindata.org/palm-oil",
+       caption = "Data Source: Our World in Data, https://ourworldindata.org/forests-and-deforestation",
        x = NULL,
        y = "Proportion of total forest loss")
 
