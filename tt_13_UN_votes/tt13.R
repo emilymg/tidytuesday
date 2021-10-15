@@ -48,9 +48,22 @@ p_us_fr_india <- ggplot(us_fr_india, aes(x = year, y = percent_yes, color = coun
   ylab("% 'Yes' Votes") 
 p_us_fr_india
 
+# Filter for permanent UN Security Council members only
+unsc_votes <- by_year_country %>%
+  filter(country %in% c("United States", "United Kingdom", "Russia", "France", "China"))
+
+# Plot percent_yes votes by UN Security Council members only
+p_unsc_votes <- ggplot(unsc_votes, aes(x = year, y = percent_yes, color = country)) +
+  geom_line() +
+  facet_wrap(~country) +
+  ggtitle("Percent 'Yes Votes by Permanent UN Security Council Members") +
+  ylab("% 'Yes' Votes") 
+p_unsc_votes + theme(legend.position = "none")
+
 # Plot percent_yes votes faceted by issue
 p_yesVotes_byIssue <- unvotes_full %>%
   group_by(year, issue) %>%
+  filter(issue != "NA") %>%
   summarize(total = n(),
             percent_yes = mean(vote_code == 1) * 100) %>%
   ggplot(aes(x = year, y = percent_yes)) +
