@@ -39,7 +39,6 @@ palm_top5 <- palm %>%
   group_by(entity) %>%
   summarise(mean_prod = mean(production)) %>%
   slice_max(order_by = mean_prod, n = 5)
-
 palm_top5
 
 # Plot top 5 palm oil producers
